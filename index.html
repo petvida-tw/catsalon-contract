@@ -554,7 +554,7 @@ liffId: "2009468052-5NimnFMq",
 
 googleScriptUrl:
 
-"https://script.google.com/macros/s/AKfycbz0tAz0mZUc7M1Gxy58DVM3jGqQLV9syJo8_bOdOx5O0nE8pEwjyh25MEZjhnWe2hsv/exec",
+"https://script.google.com/macros/s/AKfycbw_ucfAaHS8IOqDK6bGk6kv55ncfahE-sy8PnxMIwJP4P_TWeAZ3FkGLByrnP1yvZJ3/exec",
 
 sharedSecret: "1201"
 
@@ -2195,42 +2195,76 @@ const contractText = (document.getElementById("contractText")?.innerText
 
 const signatureDataUrl = canvas.toDataURL("image/png");
 
-if (GOOGLE_SCRIPT_URL && SHARED_SECRET) {
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "text/plain;charset=UTF-8"
-      },
-      body: JSON.stringify({
-        secret: SHARED_SECRET,
-        data,
-        signatureDataUrl,
-        line: {
-          userId: profile?.userId || "",
-          displayName: profile?.displayName || ""
-        },
-        contractText
-      })
-    });
-  } catch (e) {
-    console.error("資料上傳失敗：", e);
-    throw new Error("資料上傳失敗，請稍後再試");
-  }
+if(GOOGLE_SCRIPT_URL && SHARED_SECRET){
+
+let res;
+
+let result = {};
+
+try{
+
+res = await fetch(GOOGLE_SCRIPT_URL, {
+
+method: "POST",
+
+headers: { "Content-Type": "text/plain;charset=UTF-8" },
+
+body: JSON.stringify({
+
+secret: SHARED_SECRET,
+
+data,
+
+signatureDataUrl,
+
+line: {
+
+userId: profile?.userId || "",
+
+displayName: profile?.displayName || ""
+
+},
+
+contractText
+
+})
+
+});
+
+}catch(e){
+
+throw new Error("資料上傳失敗，請稍後再試");
+
 }
 
-if (liffState.inClient) {
-  await liff.sendMessages([
-    {
-      type: "text",
-      text: textMsg
-    }
-  ]);
+try{
 
-  setOK("資料已送出！\n可以回到聊天室了！");
-} else {
-  setOK("資料已送出！\n契約副本將寄送至您的 Email！");
+result = await res.json();
+
+}catch(e){
+
+throw new Error("伺服器回傳格式異常，請聯絡店家");
+
+}
+
+if(!res.ok || !result.ok){
+
+throw new Error(result.error || "副本寄送失敗，請稍後再試");
+
+}
+
+}
+
+if(liffState.inClient){
+
+await liff.sendMessages([{ type:"text", text:textMsg }]);
+
+setOK("資料已送出！\n可以回到聊天室了！");
+
+}else{
+
+setOK("資料已送出！\n契約副本將寄送至您的 Email！");
+
 }
 
 submitBtn.disabled = true;
