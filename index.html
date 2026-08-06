@@ -2203,56 +2203,28 @@ let result = {};
 
 try{
 
-res = await fetch(GOOGLE_SCRIPT_URL, {
-
-method: "POST",
-
-headers: { "Content-Type": "text/plain;charset=UTF-8" },
-
-body: JSON.stringify({
-
-secret: SHARED_SECRET,
-
-data,
-
-signatureDataUrl,
-
-line: {
-
-userId: profile?.userId || "",
-
-displayName: profile?.displayName || ""
-
-},
-
-contractText
-
-})
-
-});
-
-}catch(e){
-
-throw new Error("資料上傳失敗，請稍後再試");
-
+try {
+  await fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain;charset=UTF-8"
+    },
+    body: JSON.stringify({
+      secret: SHARED_SECRET,
+      data,
+      signatureDataUrl,
+      line: {
+        userId: profile?.userId || "",
+        displayName: profile?.displayName || ""
+      },
+      contractText
+    })
+  });
+} catch (e) {
+  console.error("資料上傳失敗：", e);
+  throw new Error("資料上傳失敗，請稍後再試");
 }
-
-try{
-
-result = await res.json();
-
-}catch(e){
-
-throw new Error("伺服器回傳格式異常，請聯絡店家");
-
-}
-
-if(!res.ok || !result.ok){
-
-throw new Error(result.error || "副本寄送失敗，請稍後再試");
-
-}
-
 }
 
 if(liffState.inClient){
